@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Reco — Mes recommandations</title>
+    <meta name="description" content="Capturez les recommandations que vous entendez">
+    <meta name="theme-color" content="#0f0c29">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Reco">
+    
+    <!-- Icône (apple-touch-icon en fichier externe, comme tes autres PWA) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+    <link rel="icon" type="image/png" href="icon.png">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        html, body {
+            overflow-x: hidden;
+            max-width: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0c29;
+        }
+        
+        body {
+            background: #0f0c29;
+            color: #e2e8f0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding-bottom: 100px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
+        /* ============ HEADER ============ */
+        .app-header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 24px 20px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+        }
+        
+        .header-menu-btn {
+            position: absolute;
+            top: 20px;
+            right: 16px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+        
+        .header-menu-btn:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        .app-title {
+            font-size: 1.6em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+        
+        .app-subtitle {
+            font-size: 0.9em;
+            opacity: 0.85;
+            font-weight: 400;
+        }
+        
+        /* ============ FILTRES ============ */
+        .filters {
+            padding: 16px 20px;
+            background: #1a1a2e;
+            border-bottom: 1px solid #2a2a4a;
+            position: sticky;
+            top: 84px;
+            z-index: 9;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #2a2a4a;
+            border-radius: 10px;
+            font-size: 16px;
+            background: #16213e;
+            color: #e2e8f0;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+        
+        .search-input::placeholder {
+            color: #64748b;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            background: #1e1e3f;
+        }
+        
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+        
+        .filter-chips::-webkit-scrollbar { display: none; }
+        
+        .chip {
+            padding: 8px 14px;
+            border-radius: 20px;
+            background: #16213e;
+            border: 2px solid transparent;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #94a3b8;
+        }
+        
+        .chip.active {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: #8b5cf6;
+            color: #c4b5fd;
+        }
+        
+        /* ============ LISTE ============ */
+        .list-container {
+            padding: 16px 20px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+        
+        .empty-icon {
+            font-size: 3em;
+            margin-bottom: 16px;
+            opacity: 0.4;
+        }
+        
+        .empty-text {
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            color: #94a3b8;
+        }
+        
+        .empty-hint {
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+        
+        .reco-card {
+            background: #16213e;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            border: 1px solid #2a2a4a;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .reco-card:hover {
+            border-color: #8b5cf6;
+            background: #1a2548;
+        }
+        
+        .reco-card:active {
+            transform: scale(0.98);
+        }
+        
+        .reco-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .reco-icon {
+            font-size: 1.8em;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        
+        .reco-main {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .reco-title {
+            font-weight: 600;
+            font-size: 1.05em;
+            color: #f1f5f9;
+            margin-bottom: 4px;
+            word-wrap: break-word;
+        }
+        
+        .reco-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .reco-link-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #c4b5fd;
+            text-decoration: none;
+            font-size: 0.95em;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        
+        .reco-link-btn:hover {
+            background: rgba(139, 92, 246, 0.3);
+            transform: scale(1.05);
+        }
+        
+        .reco-link-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .reco-meta {
+            font-size: 0.85em;
+            color: #94a3b8;
+            word-wrap: break-word;
+        }
+        
+        .reco-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.78em;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        
+        .status-todo  { background: rgba(59, 130, 246, 0.15);  color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .status-doing { background: rgba(245, 158, 11, 0.15);  color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-done  { background: rgba(34, 197, 94, 0.15);   color: #86efac; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .status-love  { background: rgba(236, 72, 153, 0.15);  color: #f9a8d4; border: 1px solid rgba(236, 72, 153, 0.3); }
+        .status-skip  { background: rgba(100, 116, 139, 0.15); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); }
+        
+        .reco-rating {
+            display: inline-block;
+            margin-left: 8px;
+            font-size: 0.85em;
+            color: #fbbf24;
+        }
+        
+        .reco-source {
+            font-size: 0.82em;
+            color: #64748b;
+            margin-top: 6px;
+            font-style: italic;
+        }
+        
+        .reco-notes {
+            font-size: 0.9em;
+            color: #cbd5e1;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #2a2a4a;
+            word-wrap: break-word;
+        }
+        
+        /* ============ FAB ============ */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            font-size: 28px;
+            font-weight: 300;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.5);
+            z-index: 50;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .fab:active {
+            transform: scale(0.9);
+        }
+        
+        /* ============ MODALE ============ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal {
+            background: #1a1a2e;
+            border-radius: 20px 20px 0 0;
+            width: 100%;
+            max-width: 600px;
+            max-height: 92vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+            border-top: 1px solid #2a2a4a;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #2a2a4a;
+            position: sticky;
+            top: 0;
+            background: #1a1a2e;
+            z-index: 1;
+        }
+        
+        .modal-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+        
+        .modal-close {
+            background: #16213e;
+            border: 1px solid #2a2a4a;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        /* ============ TYPE SELECTOR ============ */
+        .type-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+        
+        .type-btn {
+            aspect-ratio: 1;
+            background: #16213e;
+            border: 2px solid #2a2a4a;
+            border-radius: 14px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 8px;
+            transition: all 0.15s;
+        }
+        
+        .type-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .type-btn.selected {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: #8b5cf6;
+        }
+        
+        .type-emoji {
+            font-size: 1.6em;
+            line-height: 1;
+        }
+        
+        .type-label {
+            font-size: 0.72em;
+            color: #94a3b8;
+            font-weight: 500;
+            text-align: center;
+            line-height: 1.1;
+        }
+        
+        .type-btn.selected .type-label {
+            color: #c4b5fd;
+            font-weight: 600;
+        }
+        
+        /* ============ FORM ============ */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.88em;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 6px;
+        }
+        
+        .form-label .required {
+            color: #f87171;
+        }
+        
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #2a2a4a;
+            border-radius: 10px;
+            font-size: 16px;
+            background: #16213e;
+            color: #e2e8f0;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: #64748b;
+        }
+        
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            background: #1e1e3f;
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        /* ============ STATUS SELECTOR ============ */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        
+        .status-btn {
+            padding: 12px;
+            background: #16213e;
+            border: 2px solid #2a2a4a;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #94a3b8;
+            transition: all 0.15s;
+            text-align: center;
+        }
+        
+        .status-btn:active {
+            transform: scale(0.97);
+        }
+        
+        .status-btn.selected {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: #8b5cf6;
+            color: #c4b5fd;
+            font-weight: 600;
+        }
+        
+        /* ============ STARS ============ */
+        .stars-group {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            padding: 8px 0;
+        }
+        
+        .star {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 44px;
+            min-height: 44px;
+            font-size: 32px;
+            cursor: pointer;
+            color: #334155;
+            transition: color 0.15s, transform 0.15s;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            touch-action: manipulation;
+            background: none;
+            border: none;
+            padding: 0;
+            font-family: inherit;
+            line-height: 1;
+        }
+        
+        .star.active {
+            color: #fbbf24;
+        }
+        
+        .star:active {
+            transform: scale(1.2);
+        }
+        
+        /* ============ ACTIONS ============ */
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            padding: 16px 20px;
+            border-top: 1px solid #2a2a4a;
+            background: #1a1a2e;
+            position: sticky;
+            bottom: 0;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        
+        .btn:active {
+            transform: scale(0.97);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: #16213e;
+            color: #94a3b8;
+            border: 1px solid #2a2a4a;
+        }
+        
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        /* ============ TOGGLE À PARTAGER ============ */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 14px 16px;
+            background: #16213e;
+            border: 2px solid #2a2a4a;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .toggle-row:hover {
+            border-color: #2a3f66;
+        }
+        
+        .toggle-text {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        .toggle-emoji {
+            font-size: 1.5em;
+            flex-shrink: 0;
+        }
+        
+        .toggle-title {
+            display: block;
+            font-weight: 600;
+            color: #f1f5f9;
+            font-size: 15px;
+        }
+        
+        .toggle-desc {
+            display: block;
+            font-size: 0.82em;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: #2a2a4a;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            left: 3px;
+            top: 3px;
+            background: #94a3b8;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+        
+        .toggle-switch input:checked + .toggle-slider {
+            background: #8b5cf6;
+        }
+        
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+            background: white;
+        }
+        
+        /* Bordure colorée si activé */
+        .toggle-row:has(input:checked) {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.08);
+        }
+        
+        /* Icône À partager dans la carte */
+        .reco-share-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 10px;
+            font-size: 0.7em;
+            color: #c4b5fd;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+        
+        /* ============ MENU OPTIONS ============ */
+        .menu-option {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            background: #16213e;
+            border: 1px solid #2a2a4a;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.15s;
+            width: 100%;
+            text-align: left;
+            color: #e2e8f0;
+            font-family: inherit;
+            font-size: 15px;
+        }
+        
+        .menu-option:hover {
+            border-color: #8b5cf6;
+            background: #1a2548;
+        }
+        
+        .menu-option:active {
+            transform: scale(0.98);
+        }
+        
+        .menu-option-icon {
+            font-size: 1.5em;
+            flex-shrink: 0;
+        }
+        
+        .menu-option-text {
+            flex: 1;
+        }
+        
+        .menu-option-title {
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 2px;
+        }
+        
+        .menu-option-desc {
+            font-size: 0.82em;
+            color: #94a3b8;
+        }
+        
+        .menu-option.danger:hover {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.08);
+        }
+        
+        .menu-stats {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            color: #c4b5fd;
+            font-size: 0.9em;
+            text-align: center;
+        }
+        
+        .menu-stats strong {
+            color: #f1f5f9;
+            font-size: 1.2em;
+        }
+        
+        /* Input file caché */
+        .file-input-hidden {
+            display: none;
+        }
+        
+        /* ============ DETAIL VIEW ============ */
+        .detail-section {
+            margin-bottom: 20px;
+        }
+        
+        .detail-label {
+            font-size: 0.78em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .detail-value {
+            font-size: 1em;
+            color: #e2e8f0;
+            word-wrap: break-word;
+        }
+        
+        .detail-value.title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+        
+        .detail-link {
+            color: #c4b5fd;
+            text-decoration: none;
+            word-break: break-all;
+            display: inline-block;
+            padding: 8px 12px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 8px;
+            transition: all 0.15s;
+        }
+        
+        .detail-link:hover {
+            background: rgba(139, 92, 246, 0.2);
+            color: #ddd6fe;
+        }
+        
+        /* ============ DESKTOP ============ */
+        @media (min-width: 768px) {
+            body { padding-bottom: 40px; }
+            
+            .app-header { padding: 32px 40px; }
+            .filters { padding: 20px 40px; top: 100px; }
+            .list-container {
+                padding: 24px 40px;
+                max-width: 900px;
+                margin: 0 auto;
+            }
+            
+            .fab { bottom: 40px; right: 40px; }
+            
+            .modal-overlay { align-items: center; }
+            .modal { border-radius: 20px; max-width: 560px; border: 1px solid #2a2a4a; }
+        }
+        
+        /* ============ TOAST ============ */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #8b5cf6;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 24px;
+            font-size: 0.9em;
+            font-weight: 500;
+            z-index: 200;
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+            animation: toastIn 0.3s ease;
+        }
+        
+        @keyframes toastIn {
+            from { opacity: 0; transform: translate(-50%, 20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        
+        /* Scrollbar dark */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1a1a2e; }
+        ::-webkit-scrollbar-thumb { background: #2a2a4a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        ::selection { background: #8b5cf6; color: white; }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <button class="header-menu-btn" id="menuBtn" aria-label="Menu">⋯</button>
+        <div class="app-title">⭐ Reco</div>
+        <div class="app-subtitle">Vos recommandations, capturées d'un geste</div>
+    </header>
+    
+    <div class="filters">
+        <input type="text" class="search-input" id="searchInput" placeholder="🔍 Rechercher...">
+        <div class="filter-chips" id="filterChips">
+            <div class="chip active" data-filter="all">Tout</div>
+            <div class="chip" data-filter="toshare">📤 À partager</div>
+            <div class="chip" data-filter="todo">⏳ À découvrir</div>
+            <div class="chip" data-filter="doing">▶️ En cours</div>
+            <div class="chip" data-filter="done">✅ Fait</div>
+            <div class="chip" data-filter="love">💖 Coup de cœur</div>
+        </div>
+    </div>
+    
+    <div class="list-container" id="listContainer"></div>
+    
+    <button class="fab" id="fabBtn" aria-label="Ajouter une recommandation">+</button>
+    
+    <!-- Modale d'ajout/édition -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">Nouvelle reco</div>
+                <button class="modal-close" id="closeAddModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Type <span class="required">*</span></label>
+                    <div class="type-grid" id="typeGrid"></div>
+                </div>
+                
+                <div id="dynamicFields"></div>
+                
+                <div class="form-group">
+                    <label class="form-label">Lien</label>
+                    <input type="url" class="form-input" id="fieldLink" placeholder="https://...">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Recommandé par</label>
+                    <input type="text" class="form-input" id="fieldSource" placeholder="Ex : Marc au resto, podcast XYZ...">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Statut</label>
+                    <div class="status-grid" id="statusGrid">
+                        <div class="status-btn selected" data-status="todo">⏳ À découvrir</div>
+                        <div class="status-btn" data-status="doing">▶️ En cours</div>
+                        <div class="status-btn" data-status="done">✅ Fait</div>
+                        <div class="status-btn" data-status="love">💖 Coup de cœur</div>
+                        <div class="status-btn" data-status="skip">🚫 Abandonné</div>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="ratingGroup" style="display:none;">
+                    <label class="form-label">Note</label>
+                    <div class="stars-group" id="starsGroup">
+                        <button type="button" class="star" data-rating="1">★</button>
+                        <button type="button" class="star" data-rating="2">★</button>
+                        <button type="button" class="star" data-rating="3">★</button>
+                        <button type="button" class="star" data-rating="4">★</button>
+                        <button type="button" class="star" data-rating="5">★</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea class="form-textarea" id="fieldNotes" placeholder="Contexte, citations, impressions..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="toggle-row">
+                        <span class="toggle-text">
+                            <span class="toggle-emoji">📤</span>
+                            <span>
+                                <span class="toggle-title">À partager</span>
+                                <span class="toggle-desc">Reco que je veux transmettre à quelqu'un</span>
+                            </span>
+                        </span>
+                        <span class="toggle-switch">
+                            <input type="checkbox" id="fieldToShare">
+                            <span class="toggle-slider"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancelBtn">Annuler</button>
+                <button class="btn btn-primary" id="saveBtn">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modale détail -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Détail</div>
+                <button class="modal-close" id="closeDetailModal">✕</button>
+            </div>
+            <div class="modal-body" id="detailBody"></div>
+            <div class="modal-actions">
+                <button class="btn btn-danger" id="deleteBtn">🗑️</button>
+                <button class="btn btn-secondary" id="shareBtn">📤 Partager</button>
+                <button class="btn btn-primary" id="editBtn">✏️ Modifier</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modale menu Options -->
+    <div class="modal-overlay" id="menuModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Options</div>
+                <button class="modal-close" id="closeMenuModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="menu-stats" id="menuStats"></div>
+                
+                <button class="menu-option" id="exportBtn">
+                    <span class="menu-option-icon">📤</span>
+                    <span class="menu-option-text">
+                        <div class="menu-option-title">Exporter mes recos</div>
+                        <div class="menu-option-desc">Sauvegarde au format JSON</div>
+                    </span>
+                </button>
+                
+                <button class="menu-option" id="importBtn">
+                    <span class="menu-option-icon">📥</span>
+                    <span class="menu-option-text">
+                        <div class="menu-option-title">Importer depuis un fichier</div>
+                        <div class="menu-option-desc">Fusionne ou remplace les recos existantes</div>
+                    </span>
+                </button>
+                <input type="file" id="importFile" class="file-input-hidden" accept=".json,application/json">
+                
+                <button class="menu-option danger" id="clearBtn">
+                    <span class="menu-option-icon">🗑️</span>
+                    <span class="menu-option-text">
+                        <div class="menu-option-title">Tout effacer</div>
+                        <div class="menu-option-desc">Supprime toutes les recos (irréversible)</div>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const TYPES = {
+            film:      { emoji: '🎬', label: 'Film',      titleField: 'Titre', extraFields: [{ id: 'creator', label: 'Réalisation', placeholder: 'Optionnel' }] },
+            serie:     { emoji: '📺', label: 'Série',     titleField: 'Titre', extraFields: [{ id: 'creator', label: 'Création', placeholder: 'Optionnel' }] },
+            musique:   { emoji: '🎵', label: 'Musique',   titleField: 'Titre / Album', extraFields: [{ id: 'creator', label: 'Artiste', placeholder: 'Optionnel' }] },
+            livre:     { emoji: '📚', label: 'Livre',     titleField: 'Titre', extraFields: [{ id: 'creator', label: 'Auteur·rice', placeholder: 'Optionnel' }] },
+            podcast:   { emoji: '🎙️', label: 'Podcast',   titleField: 'Titre / Épisode', extraFields: [{ id: 'creator', label: 'Émission / animation', placeholder: 'Optionnel' }] },
+            jeu:       { emoji: '🎮', label: 'Jeu',       titleField: 'Titre', extraFields: [{ id: 'creator', label: 'Studio / édition', placeholder: 'Optionnel' }] },
+            resto:     { emoji: '🍽️', label: 'Resto',     titleField: 'Nom', extraFields: [{ id: 'creator', label: 'Ville / quartier', placeholder: 'Optionnel' }] },
+            generique: { emoji: '✨', label: 'Générique', titleField: 'Titre', extraFields: [{ id: 'creator', label: 'Source / contexte', placeholder: 'Optionnel' }] }
+        };
+        
+        const STATUS_LABELS = {
+            todo:  { label: '⏳ À découvrir', class: 'status-todo' },
+            doing: { label: '▶️ En cours',     class: 'status-doing' },
+            done:  { label: '✅ Fait',         class: 'status-done' },
+            love:  { label: '💖 Coup de cœur', class: 'status-love' },
+            skip:  { label: '🚫 Abandonné',    class: 'status-skip' }
+        };
+        
+        let recos = JSON.parse(localStorage.getItem('reco-list') || '[]');
+        let currentFilter = 'all';
+        let currentSearch = '';
+        let editingId = null;
+        let selectedType = null;
+        let selectedStatus = 'todo';
+        let selectedRating = 0;
+        let currentDetailId = null;
+        
+        // Migration silencieuse des anciens types (autre, article → generique)
+        (function migrate() {
+            let changed = false;
+            recos.forEach(r => {
+                if (r.type === 'autre' || r.type === 'article') {
+                    r.type = 'generique';
+                    changed = true;
+                }
+            });
+            if (changed) localStorage.setItem('reco-list', JSON.stringify(recos));
+        })();
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTypeGrid();
+            renderList();
+            setupEventListeners();
+        });
+        
+        function setupEventListeners() {
+            document.getElementById('fabBtn').addEventListener('click', () => openAddModal());
+            document.getElementById('closeAddModal').addEventListener('click', closeAddModal);
+            document.getElementById('cancelBtn').addEventListener('click', closeAddModal);
+            document.getElementById('saveBtn').addEventListener('click', saveReco);
+            document.getElementById('closeDetailModal').addEventListener('click', closeDetailModal);
+            document.getElementById('deleteBtn').addEventListener('click', deleteReco);
+            document.getElementById('editBtn').addEventListener('click', editFromDetail);
+            document.getElementById('shareBtn').addEventListener('click', shareFromDetail);
+            
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                currentSearch = e.target.value.toLowerCase();
+                renderList();
+            });
+            
+            document.querySelectorAll('.filter-chips .chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-chips .chip').forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    currentFilter = chip.dataset.filter;
+                    renderList();
+                });
+            });
+            
+            document.querySelectorAll('#statusGrid .status-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#statusGrid .status-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedStatus = btn.dataset.status;
+                    toggleRatingVisibility();
+                });
+            });
+            
+            document.querySelectorAll('#starsGroup .star').forEach(star => {
+                star.addEventListener('click', () => {
+                    selectedRating = parseInt(star.dataset.rating);
+                    updateStarsDisplay();
+                });
+            });
+            
+            document.getElementById('addModal').addEventListener('click', (e) => {
+                if (e.target.id === 'addModal') closeAddModal();
+            });
+            document.getElementById('detailModal').addEventListener('click', (e) => {
+                if (e.target.id === 'detailModal') closeDetailModal();
+            });
+            
+            // Menu options
+            document.getElementById('menuBtn').addEventListener('click', openMenuModal);
+            document.getElementById('closeMenuModal').addEventListener('click', closeMenuModal);
+            document.getElementById('menuModal').addEventListener('click', (e) => {
+                if (e.target.id === 'menuModal') closeMenuModal();
+            });
+            document.getElementById('exportBtn').addEventListener('click', exportData);
+            document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
+            document.getElementById('importFile').addEventListener('change', handleImportFile);
+            document.getElementById('clearBtn').addEventListener('click', clearAllData);
+        }
+        
+        function renderTypeGrid() {
+            const grid = document.getElementById('typeGrid');
+            grid.innerHTML = Object.entries(TYPES).map(([key, t]) => `
+                <button type="button" class="type-btn" data-type="${key}">
+                    <span class="type-emoji">${t.emoji}</span>
+                    <span class="type-label">${t.label}</span>
+                </button>
+            `).join('');
+            
+            grid.querySelectorAll('.type-btn').forEach(btn => {
+                btn.addEventListener('click', () => selectType(btn.dataset.type));
+            });
+        }
+        
+        function selectType(type) {
+            selectedType = type;
+            document.querySelectorAll('#typeGrid .type-btn').forEach(b => {
+                b.classList.toggle('selected', b.dataset.type === type);
+            });
+            renderDynamicFields(type);
+        }
+        
+        function renderDynamicFields(type) {
+            const config = TYPES[type];
+            const container = document.getElementById('dynamicFields');
+            
+            let html = `
+                <div class="form-group">
+                    <label class="form-label">${config.titleField} <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="fieldTitle" placeholder="Ex : ${getPlaceholder(type)}">
+                </div>
+            `;
+            
+            config.extraFields.forEach(field => {
+                html += `
+                    <div class="form-group">
+                        <label class="form-label">${field.label}</label>
+                        <input type="text" class="form-input" id="field_${field.id}" placeholder="${field.placeholder}">
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            if (editingId) {
+                const reco = recos.find(r => r.id === editingId);
+                if (reco) {
+                    document.getElementById('fieldTitle').value = reco.title || '';
+                    config.extraFields.forEach(field => {
+                        const input = document.getElementById('field_' + field.id);
+                        if (input) input.value = reco[field.id] || '';
+                    });
+                }
+            }
+        }
+        
+        function getPlaceholder(type) {
+            const placeholders = {
+                film: 'Le Goût des autres',
+                serie: 'Le Bureau des légendes',
+                musique: 'Random Access Memories',
+                livre: 'L\'Anomalie',
+                podcast: 'Affaires sensibles',
+                jeu: 'Disco Elysium',
+                resto: 'Chez Léon',
+                generique: 'Capybara, citation, idée à creuser...'
+            };
+            return placeholders[type] || '';
+        }
+        
+        function toggleRatingVisibility() {
+            const showRating = selectedStatus === 'done' || selectedStatus === 'love';
+            document.getElementById('ratingGroup').style.display = showRating ? 'block' : 'none';
+            if (!showRating) selectedRating = 0;
+            updateStarsDisplay();
+        }
+        
+        function updateStarsDisplay() {
+            document.querySelectorAll('#starsGroup .star').forEach((star, i) => {
+                star.classList.toggle('active', i < selectedRating);
+            });
+        }
+        
+        function selectStatus(status) {
+            selectedStatus = status;
+            document.querySelectorAll('#statusGrid .status-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.status === status);
+            });
+            toggleRatingVisibility();
+        }
+        
+        function openAddModal(id = null) {
+            editingId = id;
+            
+            if (id) {
+                const reco = recos.find(r => r.id === id);
+                if (!reco) return;
+                
+                document.getElementById('modalTitle').textContent = 'Modifier';
+                selectType(reco.type);
+                selectStatus(reco.status);
+                selectedRating = reco.rating || 0;
+                updateStarsDisplay();
+                document.getElementById('fieldLink').value = reco.link || '';
+                document.getElementById('fieldSource').value = reco.source || '';
+                document.getElementById('fieldNotes').value = reco.notes || '';
+                document.getElementById('fieldToShare').checked = !!reco.toShare;
+            } else {
+                document.getElementById('modalTitle').textContent = 'Nouvelle reco';
+                selectedType = null;
+                selectedStatus = 'todo';
+                selectedRating = 0;
+                document.getElementById('dynamicFields').innerHTML = '';
+                document.getElementById('fieldLink').value = '';
+                document.getElementById('fieldSource').value = '';
+                document.getElementById('fieldNotes').value = '';
+                document.getElementById('fieldToShare').checked = false;
+                document.querySelectorAll('#typeGrid .type-btn').forEach(b => b.classList.remove('selected'));
+                selectStatus('todo');
+                updateStarsDisplay();
+                selectType('film');
+            }
+            
+            document.getElementById('addModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('active');
+            document.body.style.overflow = '';
+            editingId = null;
+        }
+        
+        function saveReco() {
+            if (!selectedType) {
+                toast('Choisissez un type');
+                return;
+            }
+            
+            const title = document.getElementById('fieldTitle')?.value.trim();
+            if (!title) {
+                toast('Le titre est obligatoire');
+                document.getElementById('fieldTitle')?.focus();
+                return;
+            }
+            
+            const config = TYPES[selectedType];
+            const reco = {
+                id: editingId || Date.now().toString(),
+                type: selectedType,
+                title,
+                status: selectedStatus,
+                rating: selectedRating,
+                link: document.getElementById('fieldLink').value.trim(),
+                source: document.getElementById('fieldSource').value.trim(),
+                notes: document.getElementById('fieldNotes').value.trim(),
+                toShare: document.getElementById('fieldToShare').checked,
+                createdAt: editingId ? recos.find(r => r.id === editingId).createdAt : new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            config.extraFields.forEach(field => {
+                const input = document.getElementById('field_' + field.id);
+                if (input) reco[field.id] = input.value.trim();
+            });
+            
+            if (editingId) {
+                const idx = recos.findIndex(r => r.id === editingId);
+                recos[idx] = reco;
+                toast('Modifié ✓');
+            } else {
+                recos.unshift(reco);
+                toast('Ajouté ✓');
+            }
+            
+            persist();
+            renderList();
+            closeAddModal();
+        }
+        
+        function renderList() {
+            const container = document.getElementById('listContainer');
+            
+            let filtered = recos;
+            
+            if (currentFilter === 'toshare') {
+                filtered = filtered.filter(r => r.toShare);
+            } else if (currentFilter !== 'all') {
+                filtered = filtered.filter(r => r.status === currentFilter);
+            }
+            
+            if (currentSearch) {
+                filtered = filtered.filter(r => {
+                    const haystack = [r.title, r.creator, r.source, r.notes, r.link, TYPES[r.type]?.label]
+                        .filter(Boolean).join(' ').toLowerCase();
+                    return haystack.includes(currentSearch);
+                });
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">${recos.length === 0 ? '✨' : '🔍'}</div>
+                        <div class="empty-text">${recos.length === 0 ? 'Aucune reco pour le moment' : 'Aucun résultat'}</div>
+                        <div class="empty-hint">${recos.length === 0 ? 'Appuyez sur + pour commencer' : 'Essayez d\'autres mots-clés'}</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filtered.map(r => {
+                const type = TYPES[r.type] || TYPES.generique;
+                const status = STATUS_LABELS[r.status] || STATUS_LABELS.todo;
+                const meta = r.creator ? r.creator : '';
+                const stars = r.rating ? '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) : '';
+                const linkHtml = r.link ? `<a href="${escapeHtml(r.link)}" target="_blank" rel="noopener" class="reco-link-btn" onclick="event.stopPropagation()" title="Ouvrir le lien">🔗</a>` : '';
+                const shareHtml = r.toShare ? `<span class="reco-share-badge" title="Reco à partager">📤 À partager</span>` : '';
+                
+                return `
+                    <div class="reco-card" data-id="${r.id}">
+                        <div class="reco-header">
+                            <div class="reco-icon">${type.emoji}</div>
+                            <div class="reco-main">
+                                <div class="reco-title-row">
+                                    <div class="reco-title">${escapeHtml(r.title)}</div>
+                                    ${linkHtml}
+                                </div>
+                                ${meta ? `<div class="reco-meta">${escapeHtml(meta)}</div>` : ''}
+                                <div>
+                                    <span class="reco-status ${status.class}">${status.label}</span>
+                                    ${stars ? `<span class="reco-rating">${stars}</span>` : ''}
+                                    ${shareHtml}
+                                </div>
+                                ${r.source ? `<div class="reco-source">↳ ${escapeHtml(r.source)}</div>` : ''}
+                            </div>
+                        </div>
+                        ${r.notes ? `<div class="reco-notes">${escapeHtml(r.notes)}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+            
+            container.querySelectorAll('.reco-card').forEach(card => {
+                card.addEventListener('click', () => openDetail(card.dataset.id));
+            });
+        }
+        
+        function openDetail(id) {
+            const reco = recos.find(r => r.id === id);
+            if (!reco) return;
+            
+            currentDetailId = id;
+            const type = TYPES[reco.type] || TYPES.generique;
+            const status = STATUS_LABELS[reco.status] || STATUS_LABELS.todo;
+            const stars = reco.rating ? '★'.repeat(reco.rating) + '☆'.repeat(5 - reco.rating) : '';
+            const date = new Date(reco.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+            
+            document.getElementById('detailBody').innerHTML = `
+                <div class="detail-section">
+                    <div class="detail-label">${type.emoji} ${type.label}${reco.toShare ? ' · 📤 À partager' : ''}</div>
+                    <div class="detail-value title">${escapeHtml(reco.title)}</div>
+                </div>
+                ${reco.creator ? `
+                    <div class="detail-section">
+                        <div class="detail-label">${getCreatorLabel(reco.type)}</div>
+                        <div class="detail-value">${escapeHtml(reco.creator)}</div>
+                    </div>
+                ` : ''}
+                ${reco.link ? `
+                    <div class="detail-section">
+                        <div class="detail-label">Lien</div>
+                        <div class="detail-value">
+                            <a href="${escapeHtml(reco.link)}" target="_blank" rel="noopener" class="detail-link">🔗 ${escapeHtml(reco.link)}</a>
+                        </div>
+                    </div>
+                ` : ''}
+                <div class="detail-section">
+                    <div class="detail-label">Statut</div>
+                    <div class="detail-value">
+                        <span class="reco-status ${status.class}">${status.label}</span>
+                        ${stars ? `<span class="reco-rating">${stars}</span>` : ''}
+                    </div>
+                </div>
+                ${reco.source ? `
+                    <div class="detail-section">
+                        <div class="detail-label">Recommandé par</div>
+                        <div class="detail-value">${escapeHtml(reco.source)}</div>
+                    </div>
+                ` : ''}
+                ${reco.notes ? `
+                    <div class="detail-section">
+                        <div class="detail-label">Notes</div>
+                        <div class="detail-value">${escapeHtml(reco.notes).replace(/\n/g, '<br>')}</div>
+                    </div>
+                ` : ''}
+                <div class="detail-section">
+                    <div class="detail-label">Ajouté le</div>
+                    <div class="detail-value" style="font-size:0.9em;color:#64748b">${date}</div>
+                </div>
+            `;
+            
+            document.getElementById('detailModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function getCreatorLabel(type) {
+            const extra = TYPES[type]?.extraFields[0];
+            return extra ? extra.label : '';
+        }
+        
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('active');
+            document.body.style.overflow = '';
+            currentDetailId = null;
+        }
+        
+        function editFromDetail() {
+            const id = currentDetailId;
+            closeDetailModal();
+            setTimeout(() => openAddModal(id), 250);
+        }
+        
+        // ============ PARTAGE ============
+        async function shareFromDetail() {
+            if (!currentDetailId) return;
+            const reco = recos.find(r => r.id === currentDetailId);
+            if (!reco) return;
+            
+            const type = TYPES[reco.type] || TYPES.generique;
+            const creatorLabel = type.extraFields[0]?.label || '';
+            
+            // Construction du message avec libellés
+            const lines = [];
+            lines.push(`${type.emoji} ${type.label} : ${reco.title}`);
+            if (reco.creator && creatorLabel) {
+                lines.push(`${creatorLabel} : ${reco.creator}`);
+            }
+            if (reco.notes) {
+                lines.push('', `Mon avis : ${reco.notes}`);
+            }
+            if (reco.link) {
+                lines.push('', `Lien : ${reco.link}`);
+            }
+            
+            const text = lines.join('\n');
+            const shareData = {
+                title: reco.title,
+                text: text
+            };
+            
+            // Essai API Web Share native (mobile principalement)
+            if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+                try {
+                    await navigator.share(shareData);
+                    return;
+                } catch (err) {
+                    // L'utilisateur a annulé le partage, pas grave
+                    if (err.name === 'AbortError') return;
+                    console.warn('Web Share a échoué, fallback presse-papier :', err);
+                }
+            }
+            
+            // Fallback : copier dans le presse-papier
+            try {
+                await navigator.clipboard.writeText(text);
+                toast('📋 Copié dans le presse-papier');
+            } catch (err) {
+                console.error('Erreur clipboard :', err);
+                // Dernier recours : afficher le texte pour copie manuelle
+                prompt('Copiez le texte ci-dessous :', text);
+            }
+        }
+        
+        function deleteReco() {
+            if (!currentDetailId) return;
+            const reco = recos.find(r => r.id === currentDetailId);
+            if (!confirm(`Supprimer "${reco.title}" ?`)) return;
+            
+            recos = recos.filter(r => r.id !== currentDetailId);
+            persist();
+            renderList();
+            closeDetailModal();
+            toast('Supprimé ✓');
+        }
+        
+        function persist() {
+            localStorage.setItem('reco-list', JSON.stringify(recos));
+        }
+        
+        // ============ MENU OPTIONS ============
+        function openMenuModal() {
+            // Actualiser les stats
+            const total = recos.length;
+            const byStatus = recos.reduce((acc, r) => {
+                acc[r.status] = (acc[r.status] || 0) + 1;
+                return acc;
+            }, {});
+            
+            const statsEl = document.getElementById('menuStats');
+            if (total === 0) {
+                statsEl.innerHTML = 'Aucune reco pour le moment';
+            } else {
+                const parts = [];
+                if (byStatus.todo) parts.push(`${byStatus.todo} à découvrir`);
+                if (byStatus.doing) parts.push(`${byStatus.doing} en cours`);
+                if (byStatus.done) parts.push(`${byStatus.done} fait${byStatus.done > 1 ? 's' : ''}`);
+                if (byStatus.love) parts.push(`${byStatus.love} coup${byStatus.love > 1 ? 's' : ''} de cœur`);
+                statsEl.innerHTML = `<strong>${total}</strong> reco${total > 1 ? 's' : ''}<br>${parts.join(' · ')}`;
+            }
+            
+            document.getElementById('menuModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeMenuModal() {
+            document.getElementById('menuModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // ============ EXPORT ============
+        function exportData() {
+            if (recos.length === 0) {
+                toast('Aucune reco à exporter');
+                return;
+            }
+            
+            const payload = {
+                app: 'Reco',
+                version: 1,
+                exportedAt: new Date().toISOString(),
+                count: recos.length,
+                recos: recos
+            };
+            
+            const json = JSON.stringify(payload, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            // Nom de fichier avec date : reco-2026-05-24.json
+            const today = new Date().toISOString().split('T')[0];
+            const filename = `reco-${today}.json`;
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            toast(`Export : ${recos.length} reco${recos.length > 1 ? 's' : ''} ✓`);
+        }
+        
+        // ============ IMPORT ============
+        function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    // Vérifier la structure
+                    let importedRecos = [];
+                    if (Array.isArray(data)) {
+                        // Fichier qui contient directement un tableau
+                        importedRecos = data;
+                    } else if (data.recos && Array.isArray(data.recos)) {
+                        // Format d'export Reco
+                        importedRecos = data.recos;
+                    } else {
+                        throw new Error('Format non reconnu');
+                    }
+                    
+                    if (importedRecos.length === 0) {
+                        toast('Le fichier ne contient aucune reco');
+                        return;
+                    }
+                    
+                    // Demander : fusionner ou remplacer ?
+                    let mode;
+                    if (recos.length === 0) {
+                        mode = 'replace'; // Pas de question si vide
+                    } else {
+                        const choice = confirm(
+                            `Le fichier contient ${importedRecos.length} reco${importedRecos.length > 1 ? 's' : ''}.\n\n` +
+                            `OK = FUSIONNER avec vos ${recos.length} reco${recos.length > 1 ? 's' : ''} existante${recos.length > 1 ? 's' : ''}\n` +
+                            `Annuler = REMPLACER tout (les recos actuelles seront perdues)`
+                        );
+                        mode = choice ? 'merge' : 'replace';
+                    }
+                    
+                    if (mode === 'replace') {
+                        // Double confirmation pour le remplacement
+                        if (recos.length > 0 && !confirm(`⚠️ Confirmer : effacer vos ${recos.length} reco${recos.length > 1 ? 's' : ''} actuelle${recos.length > 1 ? 's' : ''} ?`)) {
+                            event.target.value = ''; // reset input
+                            return;
+                        }
+                        recos = importedRecos;
+                    } else {
+                        // Fusion : éviter les doublons par ID
+                        const existingIds = new Set(recos.map(r => r.id));
+                        const newOnes = importedRecos.filter(r => !existingIds.has(r.id));
+                        recos = [...newOnes, ...recos];
+                    }
+                    
+                    persist();
+                    renderList();
+                    closeMenuModal();
+                    toast(`Import : ${importedRecos.length} reco${importedRecos.length > 1 ? 's' : ''} ✓`);
+                    
+                } catch (err) {
+                    console.error(err);
+                    alert('Erreur lors de la lecture du fichier.\n\nVérifiez qu\'il s\'agit bien d\'un export Reco au format JSON.');
+                }
+                
+                event.target.value = ''; // reset pour permettre de réimporter le même fichier
+            };
+            reader.onerror = () => {
+                alert('Impossible de lire le fichier.');
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+        
+        // ============ CLEAR ============
+        function clearAllData() {
+            if (recos.length === 0) {
+                toast('Aucune reco à supprimer');
+                return;
+            }
+            
+            if (!confirm(`⚠️ Supprimer définitivement ${recos.length} reco${recos.length > 1 ? 's' : ''} ?\n\nPensez à exporter d'abord si vous voulez en garder une copie.`)) {
+                return;
+            }
+            
+            // Deuxième confirmation pour les gros volumes
+            if (recos.length >= 10 && !confirm(`Êtes-vous vraiment sûr·e ? Cette action est irréversible.`)) {
+                return;
+            }
+            
+            recos = [];
+            persist();
+            renderList();
+            closeMenuModal();
+            toast('Toutes les recos ont été supprimées');
+        }
+        
+        function escapeHtml(s) {
+            if (s == null) return '';
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+        
+        function toast(msg) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            
+            setTimeout(() => t.remove(), 2000);
+        }
+    </script>
+</body>
+</html>
