@@ -13,6 +13,7 @@
     <!-- Icône (apple-touch-icon en fichier externe, comme tes autres PWA) -->
     <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
     <link rel="icon" type="image/png" href="icon.png">
+<link rel="manifest" href="manifest.json">
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -1714,5 +1715,15 @@
             setTimeout(() => t.remove(), 2000);
         }
     </script>
+
+<script>
+/* Enregistrement du service worker (mode hors-ligne) */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .catch(err => console.log('Service worker :', err));
+  });
+}
+</script>
 </body>
 </html>

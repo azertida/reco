@@ -1,0 +1,21 @@
+{
+  "name": "Reco — Mes recommandations",
+  "short_name": "Reco",
+  "description": "Capturez les recommandations que vous entendez",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f0c29",
+  "theme_color": "#0f0c29",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "lang": "fr-FR",
+  "dir": "ltr"
+}
